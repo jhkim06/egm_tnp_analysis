@@ -24,11 +24,14 @@ def makePassFailHistograms( sample, flag, bindef, var ):
     outfile = rt.TFile(sample.histFile,'recreate')
     hPass = []
     hFail = []
+    hTotal = [] 
     for ib in range(len(bindef['bins'])):
         hPass.append(rt.TH1D('%s_Pass' % bindef['bins'][ib]['name'],bindef['bins'][ib]['title'],var['nbins'],var['min'],var['max']))
         hFail.append(rt.TH1D('%s_Fail' % bindef['bins'][ib]['name'],bindef['bins'][ib]['title'],var['nbins'],var['min'],var['max']))
+        hTotal.append(rt.TH1D('%s_Total' % bindef['bins'][ib]['name'],bindef['bins'][ib]['title'],var['nbins'],var['min'],var['max']))
         hPass[ib].Sumw2()
         hFail[ib].Sumw2()
+        hTotal[ib].Sumw2()
     
         cuts = bindef['bins'][ib]['cut']
         if sample.mcTruth :
@@ -49,31 +52,53 @@ def makePassFailHistograms( sample, flag, bindef, var ):
                 cutPass = '( %s && %s ) * (%s < %f ? %s : 1.0 )' % (cuts,    flag, sample.weight,sample.maxWeight,sample.weight)
                 cutFail = '( %s && %s ) * (%s < %f ? %s : 1.0 )' % (cuts, notflag, sample.weight,sample.maxWeight,sample.weight)
         else:
-            cutPass = '( %s && %s )' % (cuts,    flag)
-            cutFail = '( %s && %s )' % (cuts, notflag)
+            if sample.hltPS is None:
+                cutPass = '( %s && %s )' % (cuts,    flag)
+                cutFail = '( %s && %s )' % (cuts, notflag)
+            else :
+                # mutiply prescale as a weight to failing histogram
+                cutPass = '( %s && %s )' % (cuts,    flag)
+                cutTotal = '( %s ) * %s ' % (cuts, sample.hltPS)
         
         tree.Draw('%s >> %s' % (var['name'],hPass[ib].GetName()),cutPass,'goff')
-        tree.Draw('%s >> %s' % (var['name'],hFail[ib].GetName()),cutFail,'goff')
+        if sample.hltPS is None:    
+            tree.Draw('%s >> %s' % (var['name'],hFail[ib].GetName()),cutFail,'goff')
+        else :
+            tree.Draw('%s >> %s' % (var['name'],hTotal[ib].GetName()),cutTotal,'goff')
 
         
         removeNegativeBins(hPass[ib])
-        removeNegativeBins(hFail[ib])
+        if sample.hltPS is None: 
+            removeNegativeBins(hFail[ib])
+        else :
+            removeNegativeBins(hTotal[ib])
 
         hPass[ib].Write(hPass[ib].GetName())
-        hFail[ib].Write(hFail[ib].GetName())
+        if sample.hltPS is None: 
+            hFail[ib].Write(hFail[ib].GetName())
+        else : 
+            hTotal[ib].Write(hTotal[ib].GetName())
 
         bin1 = 1
         bin2 = hPass[ib].GetXaxis().GetNbins()
         epass = rt.Double(-1.0)
         efail = rt.Double(-1.0)
+        etotal = rt.Double(-1.0)
         passI = hPass[ib].IntegralAndError(bin1,bin2,epass)
-        failI = hFail[ib].IntegralAndError(bin1,bin2,efail)
+        if sample.hltPS is None: failI = hFail[ib].IntegralAndError(bin1,bin2,efail)
+
         eff   = 0
         e_eff = 0
         if passI > 0 :
-            itot  = (passI+failI)
-            eff   = passI / (passI+failI)
-            e_eff = math.sqrt(passI*passI*efail*efail + failI*failI*epass*epass) / (itot*itot)
+            if sample.hltPS is None:
+                itot  = (passI+failI)
+                eff   = passI / (passI+failI)
+                e_eff = math.sqrt(passI*passI*efail*efail + failI*failI*epass*epass) / (itot*itot)
+            else :
+                itot  = hTotal[ib].IntegralAndError(bin1,bin2,etotal)
+                eff   = passI / (itot)
+                e_eff = math.sqrt(passI*passI*etotal*etotal) / (itot*itot) # TODO need to check
+
         print cuts
         print '    ==> pass: %.1f +/- %.1f ; fail : %.1f +/- %.1f : eff: %1.3f +/- %1.3f' % (passI,epass,failI,efail,eff,e_eff)
     outfile.Close()
@@ -114,6 +139,7 @@ def computeEffi_cnc( n1,n2,e1,e2):
     return effout
 
 # use Divide() in TGraphAsymErrors 
+# n1: # of passing probes, n2: # of failing probes
 def computeEffiAsymError_cnc(n1,n2,e1,e2):
     effout = []
 
