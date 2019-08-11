@@ -4,9 +4,7 @@ In this branch, the cut and count option is privately included.
 
 ## Install egm_tnp_Moriond17_v2.0_cnc branch
 
-> git clone git@github.com:jhkim06/egm_tnp_analysis.git
-
-> git checkout -b BRANCH_NAME origin/egm_tnp_Moriond17_v2.0_cnc
+> git clone -b egm_tnp_Moriond17_v2.0_cnc git@github.com:jhkim06/egm_tnp_analysis.git
 
 ## Install stable branch
 
