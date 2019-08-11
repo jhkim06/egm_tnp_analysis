@@ -140,7 +140,7 @@ def computeEffi_cnc( n1,n2,e1,e2):
 
 # use Divide() in TGraphAsymErrors 
 # n1: # of passing probes, n2: # of failing probes
-def computeEffiAsymError_cnc(n1,n2,e1,e2):
+def computeEffiAsymError_cnc(n1,n2,e1,e2, usehTotal = False):
     effout = []
 
     # temporary histograms with only one bin for nominator and denominator as inputs for TGraphAsymErrors::Divide()
@@ -150,8 +150,12 @@ def computeEffiAsymError_cnc(n1,n2,e1,e2):
     htemp_nom.SetBinContent(1, n1)
     htemp_nom.SetBinError(1, e1)
 
-    htemp_denom.SetBinContent(1, n1+n2)
-    htemp_denom.SetBinError(1, math.sqrt(e1*e1+e2*e2))
+    if not usehTotal: 
+        htemp_denom.SetBinContent(1, n1+n2)
+        htemp_denom.SetBinError(1, math.sqrt(e1*e1+e2*e2))
+    else :
+        htemp_denom.SetBinContent(1, n2)
+        htemp_denom.SetBinError(1, math.sqrt(e2*e2))
 
     grEff = rt.TGraphAsymmErrors(htemp_nom,htemp_denom,"cl=0.683 b(1,1) mode")
 
@@ -302,12 +306,13 @@ def getAllEffi( info, bindef ):
         effis['dataAltBkg'] = [-1,-1]
     return effis
 
-def getAllCnCEffiAsymError( info, bindef ):
+def getAllCnCEffiAsymError( info, bindef , usehTotal = False):
     effis = {}
     if not info['denominator'] is None and os.path.isfile(info['denominator']):
         rootfile = rt.TFile( info['denominator'], 'read' )
         hP = rootfile.Get('%s_Pass'%bindef['name'])
-        hF = rootfile.Get('%s_Fail'%bindef['name'])
+        if not usehTotal : hF = rootfile.Get('%s_Fail'%bindef['name'])
+        else : hF = rootfile.Get('%s_Total'%bindef['name'])
         bin1 = 1
         bin2 = hP.GetXaxis().GetNbins()
         eP = rt.Double(-1.0)
@@ -315,14 +320,15 @@ def getAllCnCEffiAsymError( info, bindef ):
         nP = hP.IntegralAndError(bin1,bin2,eP)
         nF = hF.IntegralAndError(bin1,bin2,eF)
 
-        effis['denominator'] = computeEffiAsymError_cnc(nP,nF,eP,eF)
+        effis['denominator'] = computeEffiAsymError_cnc(nP,nF,eP,eF, usehTotal)
         rootfile.Close()
     else: effis['denominator'] = [-1,-1,-1,-1]
 
     if not info['dataNominal'] is None and os.path.isfile(info['dataNominal']):
         rootfile = rt.TFile( info['dataNominal'], 'read' )
         hP = rootfile.Get('%s_Pass'%bindef['name'])
-        hF = rootfile.Get('%s_Fail'%bindef['name'])
+        if not usehTotal : hF = rootfile.Get('%s_Fail'%bindef['name'])
+        else : hF = rootfile.Get('%s_Total'%bindef['name'])
         bin1 = 1
         bin2 = hP.GetXaxis().GetNbins()
         eP = rt.Double(-1.0)
@@ -330,7 +336,7 @@ def getAllCnCEffiAsymError( info, bindef ):
         nP = hP.IntegralAndError(bin1,bin2,eP)
         nF = hF.IntegralAndError(bin1,bin2,eF)
 
-        effis['dataNominal'] = computeEffiAsymError_cnc(nP,nF,eP,eF)
+        effis['dataNominal'] = computeEffiAsymError_cnc(nP,nF,eP,eF, usehTotal)
 
         if effis['dataNominal'][0] == 0.001: # ONLY FOR DATA set efficiency as zero if the calculated efficiency is 0.001 from computeEffiAsymError_cnc() 
            effis['dataNominal'][0] = 0.

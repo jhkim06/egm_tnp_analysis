@@ -80,6 +80,7 @@ if args.createBins:
 
 tnpBins = pickle.load( open( '%s/bining.pkl'%(outputDirectory),'rb') )
 
+isHLTPrescaled = False 
 
 ####################################################################
 ##### Create Histograms
@@ -90,6 +91,8 @@ for s in tnpConf.samplesDef.keys():
     setattr( sample, 'tree'     ,'%s/fitter_tree' % tnpConf.tnpTreeDir )
     setattr( sample, 'histFile' , '%s/%s_%s.root' % ( outputDirectory , sample.name, args.flag ) )
 
+    if not sample.isMC and not sample.hltPS is None:
+        isHLTPrescaled = True
 
 if args.createHists:
     for sampleType in tnpConf.samplesDef.keys():
@@ -286,7 +289,7 @@ if args.doCutCount:
         fOutList.append(effFileName)
        
         for ib in range(len(tnpBins['bins'])):
-            effis = tnpRoot.getAllCnCEffiAsymError( info, tnpBins['bins'][ib] )
+            effis = tnpRoot.getAllCnCEffiAsymError( info, tnpBins['bins'][ib] , isHLTPrescaled)
 
             ### formatting assuming 2D bining -- to be fixed        
             v1Range = tnpBins['bins'][ib]['title'].split(';')[1].split('<')
