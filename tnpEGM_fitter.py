@@ -284,7 +284,8 @@ if args.doCutCount:
         effis = None
         # results/EGamma2018/tnpEleTrig/eta/passingHLTleg1//data_Run2018Av1_passingHLTleg1.root
         # ex) datumList.split('/')[6] is data_Run2018Av1_passingHLTleg1.root
-        effFileName ='%s/egammaEffi%s.txt' % (outputDirectory, (datumList.split('/')[6]).split('.root')[0] + '_' + denomName)
+
+        effFileName ='%s/egammaEffi%s.txt' % (outputDirectory, (datumList.split('.')[0]).split('/')[-1] + '_' + denomName)
         fOut = open( effFileName,'w')
         fOutList.append(effFileName)
        

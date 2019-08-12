@@ -933,9 +933,9 @@ def doEGM_SFs(filein, lumi, axis = ['pT','eta'] ):
     cDummy.Print( pdfout + "[" )
 
 
-    EffiGraphAsymError1D( effGraph.pt_1DGraphAsymError_list( False , True) , #eff Data
+    EffiGraphAsymError1D( effGraph.pt_1DGraphAsymError_list( False ) , #eff Data
                  None, 
-                 effGraph.pt_1DGraph_list( True, True ) , #SF
+                 effGraph.pt_1DGraph_list( True ) , #SF
                  pdfout,
                  xAxis = axis[0], yAxis = axis[1] )
 

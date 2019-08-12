@@ -4,40 +4,10 @@ from libPython.tnpClassUtils import tnpSample
 #myinputDir = '/data1/EGM_TnP/TnPTree/Dalmin/HN/Moriond17_GainSwitch_newTnP_v3_test/'
 myinputDir_leg1 = '/data1/EGM_TnP/TnPTree/Dalmin/HN/Moriond17_GainSwitch_newTnP_v3_leg1/'
 myinputDir_leg2 = '/data1/EGM_TnP/TnPTree/Dalmin/HN/Moriond17_GainSwitch_newTnP_v3_leg2/'
-myinputDir = '/data8/Users/jhkim/Moriond17_GainSwitch_newTnP_v5/'
-
-myinputDir_2018 = '/data8/Users/jhkim/2018Data/2018Data_v2/2018Data/'
-myinputDir_2017_2016 = '/data8/Users/jhkim/2017_2016Data/'
-
-EGamma2018 = {
-    ### MiniAOD TnP for IDs scale factors
-    'DY_madgraph_Winter17' : tnpSample('DY_madgraph_Winter17',
-                                       myinputDir_2018 + 'mc/CRAB_UserFiles/crab_DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8.root',
-                                       isMC = True, nEvts = 49144274 ),
-
-    'data_Run2018' : tnpSample('data_Run2018' , myinputDir_2018 + 'data/EGamma/SingleElectron_2018.root' , lumi = -1. ),
-    }
-
-EGamma2017 = {
-    ### MiniAOD TnP for IDs scale factors
-    #'DY_madgraph_Winter17' : tnpSample('DY_madgraph_Winter17',
-    #                                   myinputDir_2018 + 'mc/CRAB_UserFiles/crab_DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8.root',
-    #                                   isMC = True, nEvts = 49144274 ),
-
-    'data_Run2017' : tnpSample('data_Run2017' , myinputDir_2017_2016 + 'data/SingleElectron_2017/SingleElectron_2017B-F_HLT_Double.root', lumi = 1.0),
-    }
-
-EGamma2016 = {
-    ### MiniAOD TnP for IDs scale factors
-    #'DY_madgraph_Winter17' : tnpSample('DY_madgraph_Winter17',
-    #                                   myinputDir_2018 + 'mc/CRAB_UserFiles/crab_DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8.root',                              
-    #                                   isMC = True, nEvts = 49144274 ),
-    
-    'data_Run2016' : tnpSample('data_Run2016' , myinputDir_2017_2016 + 'data/SingleElectron_2016/SingleElectron_2016Bv2-H_HLT_Double.root', lumi = 1.0),
-    }
+myinputDir = '/data7/Users/jhkim/Moriond17_GainSwitch_newTnP_v6/'
 
 
-Moriond17_80X_HN = {
+Moriond17_80X = {
     ### MiniAOD TnP for IDs scale factors
     'DY_madgraph_Winter17' : tnpSample('DY_madgraph_Winter17', 
                                        myinputDir + 'mc/TnPTree_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8_DYToLL_madgraph_Moriond17.root',
