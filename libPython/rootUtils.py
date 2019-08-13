@@ -9,7 +9,7 @@ def removeNegativeBins(h):
             h.SetBinContent(i, 0)
 
 
-def makePassFailHistograms( sample, flag, bindef, var ):
+def makePassFailHistograms( sample, flag, bindef, var , isPassTotal = False, flagForTotal = None):
     ## open rootfile
     tree = rt.TChain(sample.tree)
     for p in sample.path:
@@ -45,62 +45,78 @@ def makePassFailHistograms( sample, flag, bindef, var ):
 #                ## for high pT change the failing spectra to any probe to get statistics
 #                if bindef['bins'][ib]['vars'][aVar]['min'] > 89: notflag = '( %s  || !(%s) )' % (flag,flag)
 
-        if sample.isMC and not sample.weight is None:
-            cutPass = '( %s && %s ) * %s ' % (cuts,    flag, sample.weight)
-            cutFail = '( %s && %s ) * %s ' % (cuts, notflag, sample.weight)
-            if sample.maxWeight < 999:
-                cutPass = '( %s && %s ) * (%s < %f ? %s : 1.0 )' % (cuts,    flag, sample.weight,sample.maxWeight,sample.weight)
-                cutFail = '( %s && %s ) * (%s < %f ? %s : 1.0 )' % (cuts, notflag, sample.weight,sample.maxWeight,sample.weight)
-        else:
-            if sample.hltPS is None:
+        if not isPassTotal :
+            if sample.isMC and not sample.weight is None:
+                cutPass = '( %s && %s ) * %s ' % (cuts,    flag, sample.weight)
+                cutFail = '( %s && %s ) * %s ' % (cuts, notflag, sample.weight)
+                if sample.maxWeight < 999:
+                    cutPass = '( %s && %s ) * (%s < %f ? %s : 1.0 )' % (cuts,    flag, sample.weight,sample.maxWeight,sample.weight)
+                    cutFail = '( %s && %s ) * (%s < %f ? %s : 1.0 )' % (cuts, notflag, sample.weight,sample.maxWeight,sample.weight)
+            else:
                 cutPass = '( %s && %s )' % (cuts,    flag)
                 cutFail = '( %s && %s )' % (cuts, notflag)
-            else :
-                # mutiply prescale as a weight to failing histogram
-                cutPass = '( %s && %s )' % (cuts,    flag)
-                cutTotal = '( %s ) * %s ' % (cuts, sample.hltPS)
-        
-        tree.Draw('%s >> %s' % (var['name'],hPass[ib].GetName()),cutPass,'goff')
-        if sample.hltPS is None:    
+
+            tree.Draw('%s >> %s' % (var['name'],hPass[ib].GetName()),cutPass,'goff')
             tree.Draw('%s >> %s' % (var['name'],hFail[ib].GetName()),cutFail,'goff')
-        else :
-            tree.Draw('%s >> %s' % (var['name'],hTotal[ib].GetName()),cutTotal,'goff')
 
-        
-        removeNegativeBins(hPass[ib])
-        if sample.hltPS is None: 
+            removeNegativeBins(hPass[ib])
             removeNegativeBins(hFail[ib])
-        else :
-            removeNegativeBins(hTotal[ib])
 
-        hPass[ib].Write(hPass[ib].GetName())
-        if sample.hltPS is None: 
+            hPass[ib].Write(hPass[ib].GetName())
             hFail[ib].Write(hFail[ib].GetName())
-        else : 
-            hTotal[ib].Write(hTotal[ib].GetName())
 
-        bin1 = 1
-        bin2 = hPass[ib].GetXaxis().GetNbins()
-        epass = rt.Double(-1.0)
-        efail = rt.Double(-1.0)
-        etotal = rt.Double(-1.0)
-        passI = hPass[ib].IntegralAndError(bin1,bin2,epass)
-        if sample.hltPS is None: failI = hFail[ib].IntegralAndError(bin1,bin2,efail)
-
-        eff   = 0
-        e_eff = 0
-        if passI > 0 :
-            if sample.hltPS is None:
+            bin1 = 1
+            bin2 = hPass[ib].GetXaxis().GetNbins()
+            epass = rt.Double(-1.0)
+            efail = rt.Double(-1.0)
+            passI = hPass[ib].IntegralAndError(bin1,bin2,epass)
+            failI = hFail[ib].IntegralAndError(bin1,bin2,efail)
+            eff   = 0
+            e_eff = 0
+            if passI > 0 :
                 itot  = (passI+failI)
                 eff   = passI / (passI+failI)
                 e_eff = math.sqrt(passI*passI*efail*efail + failI*failI*epass*epass) / (itot*itot)
-            else :
-                itot  = hTotal[ib].IntegralAndError(bin1,bin2,etotal)
-                eff   = passI / (itot)
-                e_eff = math.sqrt(passI*passI*etotal*etotal) / (itot*itot) # TODO need to check
+            print cuts
+            print '    ==> pass: %.1f +/- %.1f ; fail : %.1f +/- %.1f : eff: %1.3f +/- %1.3f' % (passI,epass,failI,efail,eff,e_eff)
 
-        print cuts
-        print '    ==> pass: %.1f +/- %.1f ; fail : %.1f +/- %.1f : eff: %1.3f +/- %1.3f' % (passI,epass,failI,efail,eff,e_eff)
+        else :
+
+            if sample.isMC and not sample.weight is None:
+                cutPass = '( %s && %s ) * %s ' % (cuts,    flag, sample.weight)
+                cutTotal = '( %s && %s ) * %s ' % (cuts, flagForTotal, sample.weight)
+                if sample.maxWeight < 999:
+                    cutPass = '( %s && %s ) * (%s < %f ? %s : 1.0 )' %  (cuts,    flag, sample.weight,sample.maxWeight,sample.weight)
+                    cutTotal = '( %s && %s ) * (%s < %f ? %s : 1.0 )' % (cuts, flagForTotal, sample.weight,sample.maxWeight,sample.weight)
+            else:
+                cutPass = '( %s && %s )' % (cuts,    flag)
+                cutTotal = '( %s && %s ) *%s ' % (cuts, flagForTotal, sample.hltPS)
+
+            tree.Draw('%s >> %s' % (var['name'],hPass[ib].GetName()),cutPass,'goff')
+            tree.Draw('%s >> %s' % (var['name'],hTotal[ib].GetName()),cutTotal,'goff')
+
+            removeNegativeBins(hPass[ib])
+            removeNegativeBins(hTotal[ib])
+
+            hPass[ib].Write(hPass[ib].GetName())
+            hTotal[ib].Write(hTotal[ib].GetName())
+
+            bin1 = 1
+            bin2 = hPass[ib].GetXaxis().GetNbins()
+            epass = rt.Double(-1.0)
+            etotal = rt.Double(-1.0)
+            passI = hPass[ib].IntegralAndError(bin1,bin2,epass)
+            totalI = hTotal[ib].IntegralAndError(bin1,bin2,etotal)
+            eff   = 0
+            e_eff = 0
+            if passI > 0 :
+                itot  = (totalI)
+                eff   = passI / (totalI)
+                e_eff = math.sqrt(passI*passI*etotal*etotal) / (itot*itot)
+            print cuts
+            print '    ==> pass: %.1f +/- %.1f ; total : %.1f +/- %.1f : eff: %1.3f +/- %1.3f' % (passI,epass,totalI,etotal,eff,e_eff)
+        
+        
     outfile.Close()
 
 
@@ -154,6 +170,7 @@ def computeEffiAsymError_cnc(n1,n2,e1,e2, usehTotal = False):
         htemp_denom.SetBinContent(1, n1+n2)
         htemp_denom.SetBinError(1, math.sqrt(e1*e1+e2*e2))
     else :
+        if n1 > n2: n2 = n1 # to avoid efficiency > 1
         htemp_denom.SetBinContent(1, n2)
         htemp_denom.SetBinError(1, math.sqrt(e2*e2))
 
@@ -161,17 +178,30 @@ def computeEffiAsymError_cnc(n1,n2,e1,e2, usehTotal = False):
 
     eff_ = grEff.GetY()
 
-    if not n1+n2 == 0: eff = eff_[0]
-    else : eff = 0
 
-    if not n1+n2 == 0:
-       high = grEff.GetErrorYhigh(0)
-       low = grEff.GetErrorYlow(0)
-    else : 
-       high = 0
-       low = 0
+    if not usehTotal:
+        if not n1+n2 == 0: eff = eff_[0]
+        else : eff = 0
+
+        if not n1+n2 == 0:
+           high = grEff.GetErrorYhigh(0)
+           low = grEff.GetErrorYlow(0)
+        else : 
+           high = 0
+           low = 0
+    else :
+        if not n2 == 0: eff = eff_[0]
+        else : eff = 0
+
+        if not n2 == 0:
+           high = grEff.GetErrorYhigh(0)
+           low = grEff.GetErrorYlow(0)
+        else :
+           high = 0
+           low = 0 
 
     if eff < 1e-3: eff = 1e-3 # just to avoid zero in denominator
+    if eff > 1. : eff = 1.
     if high < 1e-3: high = 1e-3
     if low < 1e-3: low = 1e-3
 

@@ -77,19 +77,20 @@ class efficiency:
         self.systCombined = 0
         self.systlowCombined = 0
         self.systhighCombined = 0
+        
         for isyst in range(6):
             self.systCombined += self.syst[isyst]*self.syst[isyst];
             if isyst ==0 :
                self.systlowCombined += self.errlowEffData * self.errlowEffData
-               self.systhighCombined += self.errhighEffData * self.errhighEffData
+               if averageEffData < 1. : self.systhighCombined += self.errhighEffData * self.errhighEffData
 
             elif isyst ==1 :
                self.systlowCombined += self.errlowEffMC * self.errlowEffMC
-               self.systhighCombined += self.errhighEffMC * self.errhighEffMC
+               if averageEffData < 1. : self.systhighCombined += self.errhighEffMC * self.errhighEffMC
                
             else :
                self.systlowCombined += (self.syst[isyst]/2)*(self.syst[isyst]/2)
-               self.systhighCombined += (self.syst[isyst]/2)*(self.syst[isyst]/2)
+               if averageEffData < 1. : self.systhighCombined += (self.syst[isyst]/2)*(self.syst[isyst]/2)
               
 
         self.systCombined = math.sqrt(self.systCombined)
@@ -204,7 +205,7 @@ class efficiencyList:
                         effMinus =  self.effList[ptBin][etaBinMinus] 
 
                     if effMinus is None:
-                        print " ---- efficiencyList: I did not find -eta bin, maybe absolute bin definition is used?"
+                        #print " ---- efficiencyList: I did not find -eta bin, maybe absolute bin definition is used?"
                         averageData = (effPlus.effData)
                         averageMC   = (effPlus.effMC)
                         self.effList[ptBin][etaBinPlus ].combineSyst(averageData,averageMC)
@@ -247,7 +248,7 @@ class efficiencyList:
 
                     if effMinus is None:
                         self.effList[ptBin][etaBinMinus] = effPlus
-                        print " ---- efficiencyList: I did not find -eta bin!!!"
+                        #print " ---- efficiencyList: I did not find -eta bin!!!"
                     else:
                         #### fix statistical errors if needed
                         if    effPlus.errEffData <= 0.00001 and effMinus.errEffData > 0.00001: 
@@ -308,10 +309,10 @@ class efficiencyList:
         ybinsTab = np.array(ybins)
 
         htitle = 'e/#gamma scale factors'
-        hname  = 'h2_scaleFactorsEGamma' 
+        hname  = 'h2_scaleFactorsEGamma'+str(onlyError) 
         if onlyError >= 0:
             htitle = 'e/#gamma uncertainties'
-            hname  = 'h2_uncertaintiesEGamma'             
+            hname  = 'h2_uncertaintiesEGamma'+str(onlyError)             
 
         h2 = rt.TH2F(hname,htitle,xbinsTab.size-1,xbinsTab,ybinsTab.size-1,ybinsTab)
 
@@ -343,7 +344,7 @@ class efficiencyList:
                         averageMC = None
                         if effMinus is None:
                             averageMC = effPlus.effMC
-                            print " ---- efficiencyList: I did not find -eta bin!!!"
+                            #print " ---- efficiencyList: I did not find -eta bin!!!"
                         else:                        
                             averageMC   = (effPlus.effMC   + effMinus.effMC  )/2.
                         ### so this is h2D bin is inside the bining used by e/gamma POG

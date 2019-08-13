@@ -5,6 +5,22 @@ from libPython.tnpClassUtils import tnpSample
 myinputDir_leg1 = '/data1/EGM_TnP/TnPTree/Dalmin/HN/Moriond17_GainSwitch_newTnP_v3_leg1/'
 myinputDir_leg2 = '/data1/EGM_TnP/TnPTree/Dalmin/HN/Moriond17_GainSwitch_newTnP_v3_leg2/'
 myinputDir = '/data7/Users/jhkim/Moriond17_GainSwitch_newTnP_v6/'
+myinputDirv2 = '/data7/Users/jhkim/Moriond17_GainSwitch_newTnP_v6/'
+
+DZfilter_2016 = {
+    ### MiniAOD TnP for IDs scale factors
+    'DY_amcatnlo_Winter17' : tnpSample('DY_amcatnlo_Winter17',
+                                       myinputDirv2 + 'DYJets.root',
+                                       isMC = True, nEvts = 28968252 ),
+
+    'data_Run2016B' : tnpSample('data_Run2016B' , myinputDirv2 + 'periodB_ver2.root' , lumi = 5.788 ),
+    'data_Run2016C' : tnpSample('data_Run2016C' , myinputDirv2 + 'periodC.root' , lumi = 2.573 ),
+    'data_Run2016D' : tnpSample('data_Run2016D' , myinputDirv2 + 'periodD.root' , lumi = 4.248 ),
+    'data_Run2016E' : tnpSample('data_Run2016E' , myinputDirv2 + 'periodE.root' , lumi = 4.009 ),
+    'data_Run2016F' : tnpSample('data_Run2016F' , myinputDirv2 + 'periodF.root' , lumi = 3.102 ),
+    'data_Run2016G' : tnpSample('data_Run2016G' , myinputDirv2 + 'periodG.root' , lumi = 7.540 ),
+    'data_Run2016H' : tnpSample('data_Run2016H' , myinputDirv2 + 'periodH.root' , lumi = 8.606  ),
+    }
 
 
 Moriond17_80X = {

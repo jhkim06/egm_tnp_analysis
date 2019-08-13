@@ -569,10 +569,10 @@ def EffiGraphAsymError1D(effDataList, effMCList, sfList ,nameout, xAxis = 'pT', 
     xMin = 10
     xMax = 500
     if 'pT' in xAxis or 'pt' in xAxis:
-        p1.SetLogx()
-        p2.SetLogx()    
-        xMin = 10
-        xMax = 500
+        #p1.SetLogx()
+        #p2.SetLogx()    
+        xMin = 0
+        xMax = 60
     elif 'vtx' in xAxis or 'Vtx' in xAxis or 'PV' in xAxis:
         xMin =  0
         xMax = 70
@@ -676,8 +676,8 @@ def EffiGraphAsymError1D(effDataList, effMCList, sfList ,nameout, xAxis = 'pT', 
         listOfTGraph2[use_igr].SetMarkerColor(graphColors[use_igr])
         listOfTGraph2[use_igr].GetHistogram().SetMinimum(sfMin)
         listOfTGraph2[use_igr].GetHistogram().SetMaximum(sfMax)
-        if 'pT' in xAxis or 'pt' in xAxis :
-            listOfTGraph2[use_igr].GetHistogram().GetXaxis().SetMoreLogLabels()
+        #if 'pT' in xAxis or 'pt' in xAxis :
+            #listOfTGraph2[use_igr].GetHistogram().GetXaxis().SetMoreLogLabels()
         listOfTGraph2[use_igr].GetHistogram().GetXaxis().SetNoExponent()
         listOfTGraph2[use_igr].Draw(option)
         
@@ -966,8 +966,8 @@ def doEGM_SFs(filein, lumi, axis = ['pT','eta'] ):
     c2D.GetPad(2).SetRightMargin(0.15)
     c2D.GetPad(2).SetLeftMargin( 0.15)
     c2D.GetPad(2).SetTopMargin(  0.10)
-    c2D.GetPad(1).SetLogy()
-    c2D.GetPad(2).SetLogy()
+    #c2D.GetPad(1).SetLogy()
+    #c2D.GetPad(2).SetLogy()
     
 
     c2D.cd(1)

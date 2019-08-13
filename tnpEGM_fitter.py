@@ -11,7 +11,8 @@ parser = argparse.ArgumentParser(description='tnp EGM fitter')
 parser.add_argument('--checkBins'  , action='store_true'  , help = 'check  bining definition')
 parser.add_argument('--createBins' , action='store_true'  , help = 'create bining definition')
 parser.add_argument('--createHists', action='store_true'  , help = 'create histograms')
-parser.add_argument('--doCutCount', action='store_true'  , help = 'do cut and count')
+parser.add_argument('--doCutCount', action='store_true'  , help = 'calculate cut and count efficiency')
+parser.add_argument('--isPassOverTotal', action='store_true'  , default = False, help = 'efficiency definition: pass/ total not pass/ (pass+fail)')
 parser.add_argument('--onlyDoPlot', action='store_true'  , help = 'do not create SF root files and systematic plots', default = False)
 parser.add_argument('--plotX'     , default = None     , help ='x axis of plot to draw') # plot type to draw
 parser.add_argument('--sample'     , default='all'        , help = 'create histograms (per sample, expert only)')
@@ -23,6 +24,7 @@ parser.add_argument('--doPlot'     , action='store_true'  , help = 'plotting')
 parser.add_argument('--sumUp'      , action='store_true'  , help = 'sum up efficiencies')
 parser.add_argument('--iBin'       , dest = 'binNumber'   , type = int,  default=-1, help='bin number (to refit individual bin)')
 parser.add_argument('--flag'       , default = None       , help ='WP to test')
+parser.add_argument('--flagForTotal'       , default = None       , help ='WP to test')
 parser.add_argument('settings'     , default = None       , help = 'setting file [mandatory]')
 
 
@@ -80,7 +82,6 @@ if args.createBins:
 
 tnpBins = pickle.load( open( '%s/bining.pkl'%(outputDirectory),'rb') )
 
-isHLTPrescaled = False 
 
 ####################################################################
 ##### Create Histograms
@@ -91,10 +92,12 @@ for s in tnpConf.samplesDef.keys():
     setattr( sample, 'tree'     ,'%s/fitter_tree' % tnpConf.tnpTreeDir )
     setattr( sample, 'histFile' , '%s/%s_%s.root' % ( outputDirectory , sample.name, args.flag ) )
 
-    if not sample.isMC and not sample.hltPS is None:
-        isHLTPrescaled = True
-
 if args.createHists:
+
+    flagTotal = None
+    if not args.flagForTotal is None:
+        flagTotal = tnpConf.flags[args.flagForTotal]
+        
     for sampleType in tnpConf.samplesDef.keys():
         sample =  tnpConf.samplesDef[sampleType]
         if sample is None : continue
@@ -104,8 +107,8 @@ if args.createHists:
             var = { 'name' : 'pair_mass', 'nbins' : 60, 'min' : 60, 'max': 120 }
             if sample.mcTruth:
                 var = { 'name' : 'pair_mass', 'nbins' : 60, 'min' : 60, 'max': 120 }
-            tnpRoot.makePassFailHistograms( sample, tnpConf.flags[args.flag], tnpBins, var ) 
-
+            tnpRoot.makePassFailHistograms( sample, tnpConf.flags[args.flag], tnpBins, var , args.isPassOverTotal, flagTotal) 
+ 
     sys.exit(0)
 
 
@@ -239,20 +242,19 @@ if args.doCutCount:
 
     dataList = [] # make list for the comparison between data
 
+    isHLTPrescaled  = False
     for sampleType in tnpConf.samplesDef.keys():
         sample =  tnpConf.samplesDef[sampleType]
         if sample is None : continue
-        if sampleType == args.sample or args.sample == 'all' :
-            print 'creating histogram for sample '
-            sample.dump()
-            var = { 'name' : 'pair_mass', 'nbins' : 60, 'min' : 60, 'max': 120 }
-            if sample.mcTruth:
-                var = { 'name' : 'pair_mass', 'nbins' : 60, 'min' : 60, 'max': 120 }
-            else:
-               if not sampleType == "dataToCompare":
-                  dataList.append(sample.histFile)
-                  tnpRoot.makePassFailHistograms( sample, tnpConf.flags[args.flag], tnpBins, var ) # create root root file with histograms
 
+        if not sample.isMC and not sample.hltPS is None:
+            isHLTPrescaled = True
+
+        if not sampleType == "dataToCompare" and not sampleType == 'tagSel' and not sampleType == 'mcAlt' and not sampleType == 'mcNom':
+            dataList.append(sample.histFile)
+            #tnpRoot.makePassFailHistograms( sample, tnpConf.flags[args.flag], tnpBins, var ) # create root root file with histograms
+
+    print "isHLTPrescaled : " + str(isHLTPrescaled)
 
     #dataList = ['results/EGamma2018/tnpEleTrig/et/passTrackIsoLeg1//data_Run2018test_passTrackIsoLeg1.root', 'results/EGamma2018/tnpEleTrig/et/passTrackIsoLeg1//data_Run2017_passTrackIsoLeg1.root', 'results/EGamma2018/tnpEleTrig/et/passTrackIsoLeg1//data_Run2016_passTrackIsoLeg1.root']
     fOutList = [] # list of efficiency txt files
@@ -290,7 +292,7 @@ if args.doCutCount:
         fOutList.append(effFileName)
        
         for ib in range(len(tnpBins['bins'])):
-            effis = tnpRoot.getAllCnCEffiAsymError( info, tnpBins['bins'][ib] , isHLTPrescaled)
+            effis = tnpRoot.getAllCnCEffiAsymError( info, tnpBins['bins'][ib] , args.isPassOverTotal) # TODO isHLTPrescaled --> isPassOverTotal 
 
             ### formatting assuming 2D bining -- to be fixed        
             v1Range = tnpBins['bins'][ib]['title'].split(';')[1].split('<')
@@ -329,6 +331,3 @@ if args.doCutCount:
        if 'nvtx' == args.plotX : egm_sf.doPlots(fOutList,sampleToFit.lumi, ['vtx','eta']) #efficienct vs vtx
        if 'eta' == args.plotX : egm_sf.doPlots(fOutList,sampleToFit.lumi, ['eta','pT']) # efficiency vs eta 
        
-        
-
-
