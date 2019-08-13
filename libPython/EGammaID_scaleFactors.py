@@ -350,20 +350,20 @@ def EffiGraph1D_multiData(effDataLists, effMCList, sfLists ,nameout, fileNameLis
     for list_ in effDataLists :
         if 'eta' not in xAxis :
            if 'EB' == EB_or_EE :
-              effDataList = list_.pt_1DGraphAsymError_list( False , False)
+              effDataList = list_.pt_1DGraphAsymError_list( False)
               effMCList= None
-              sfList = list_.pt_1DGraph_list( True , False)
+              sfList = list_.pt_1DGraph_list( True)
               name = fileNameList[idx_sfList]
            elif 'EE' == EB_or_EE :
-              effDataList = list_.pt_1DGraphAsymError_list( False , False, isBE = False)
+              effDataList = list_.pt_1DGraphAsymError_list( False)
               effMCList= None
-              sfList = list_.pt_1DGraph_list( True , False, isBE = False)
+              sfList = list_.pt_1DGraph_list( True )
               name = fileNameList[idx_sfList]
         elif 'eta' in xAxis :
-              effDataList = list_.eta_1DGraphAsymError_list( typeGR =  0 , doAverage = False)
+              effDataList = list_.eta_1DGraphAsymError_list( typeGR =  0 )
               #effMCList = list_.eta_1DGraphAsymError_list( typeGR = -1 , doAverage = False)
               effMCList = None
-              sfList = sfLists[idx_sfList].eta_1DGraphAsymError_list( typeGR = +1 , doAverage = False)
+              sfList = sfLists[idx_sfList].eta_1DGraphAsymError_list( typeGR = +1 )
               name = fileNameList[idx_sfList]
 
         effminmax =  findMinMax_v2( effDataList )
